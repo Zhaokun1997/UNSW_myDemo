@@ -18,7 +18,7 @@ while 1:
 
     try:
         if match_obj:  # 测试输入的字符串是否符合基本条件
-            group = match_obj.group(1)
+            group = match_obj.group(1) # 提取出 *** 的部分
             print(group)
             match_obj_second = re.search(r'(.*) using (.*)', group)
             match_obj_third = re.search(r'(.*) minimally', group)

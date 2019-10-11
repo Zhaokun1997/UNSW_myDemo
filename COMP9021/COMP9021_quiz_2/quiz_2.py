@@ -69,50 +69,50 @@ if keys:  # 若mapping中有key存在
 # TASK2
 
 
-# # METHOD 1
-# reversed_dict = defaultdict(list)
-# for key, value in mapping.items():
-#     reversed_dict[value].append(key)
-#     reversed_dict[value].sort()
-#
-# for key, value in reversed_dict.items():
-#     length = len(value)
-#     if length in reversed_dict_per_length:  # 若length存在在key中
-#         reversed_dict_per_length[length].update({key: value})
-#         # reversed_dict_per_length[length][key] = value
-#     else:  # 若length不存在在key中
-#         reversed_dict_per_length[length] = {}
-#         reversed_dict_per_length[length].update({key: value})
-#         # reversed_dict_per_length[length][key] = value
-#         # reversed_dict_per_length[length] = {key: value}
-
-# METHOD 2
-reversed_dict = {}  # 翻转的字典
-length_list = []  # 记录reversed_dict中所有value的长度
-
-# 初始化翻转的字典，使得value的类型为list
-for value in sorted(mapping.values()):
-    reversed_dict[value] = []
-
-# 填充元素
+# METHOD 1
+reversed_dict = defaultdict(list)
 for key, value in mapping.items():
     reversed_dict[value].append(key)
-    reversed_dict[value].sort()  # 对列表中的元素进行实时排序
-
-# 构建length_list
-for value in reversed_dict.values():
-    length_list.append(len(value))
-    length_list.sort()  # 对列表中的元素进行实时排序
-
-# 将记录的每一个长度转换为集合：去除重复的长度value
-length_set = set(length_list)
-# 初始化reversed_dict_per_length
-for length in length_set:
-    reversed_dict_per_length[length] = {}
+    reversed_dict[value].sort()
 
 for key, value in reversed_dict.items():
-    if len(value) in length_set:
-        reversed_dict_per_length[len(value)].update({key: value})
+    length = len(value)
+    if length in reversed_dict_per_length:  # 若length存在在key中
+        reversed_dict_per_length[length].update({key: value})
+        # reversed_dict_per_length[length][key] = value
+    else:  # 若length不存在在key中
+        reversed_dict_per_length[length] = {}
+        reversed_dict_per_length[length].update({key: value})
+        # reversed_dict_per_length[length][key] = value
+        # reversed_dict_per_length[length] = {key: value}
+
+# # METHOD 2
+# reversed_dict = {}  # 翻转的字典
+# length_list = []  # 记录reversed_dict中所有value的长度
+#
+# # 初始化翻转的字典，使得value的类型为list
+# for value in sorted(mapping.values()):
+#     reversed_dict[value] = []
+#
+# # 填充元素
+# for key, value in mapping.items():
+#     reversed_dict[value].append(key)
+#     reversed_dict[value].sort()  # 对列表中的元素进行实时排序
+#
+# # 构建length_list
+# for value in reversed_dict.values():
+#     length_list.append(len(value))
+#     length_list.sort()  # 对列表中的元素进行实时排序
+#
+# # 将记录的每一个长度转换为集合：去除重复的长度value
+# length_set = set(length_list)
+# # 初始化reversed_dict_per_length
+# for length in length_set:
+#     reversed_dict_per_length[length] = {}
+#
+# for key, value in reversed_dict.items():
+#     if len(value) in length_set:
+#         reversed_dict_per_length[len(value)].update({key: value})
 
 # print(f'reversed_dict is : {reversed_dict}')
 # print(f'length_list is : {length_list}')

@@ -36,3 +36,7 @@ def outer():
 
 outer()
 print(a)
+
+dic = [3,5,7,6,1,0,2]
+d = [{"order":3},{"order":1},{"order":2}]
+
