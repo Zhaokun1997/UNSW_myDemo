@@ -64,16 +64,15 @@ def is_valid(word_input, num_para):
     # REPLACE THE RETURN STATEMENT ABOVE WITH YOUR CODE
 
 
-while 1:
-    try:
-        arity = int(input('Input an arity : '))
-        if arity < 0:
-            raise ValueError
-    except ValueError:
-        print('Incorrect arity, giving up...')
-        sys.exit()
-    word = input('Input a word: ')
-    if is_valid(word, arity):
-        print('The word is valid.')
-    else:
-        print('The word is invalid.')
+try:
+    arity = int(input('Input an arity : '))
+    if arity < 0:
+        raise ValueError
+except ValueError:
+    print('Incorrect arity, giving up...')
+    sys.exit()
+word = input('Input a word: ')
+if is_valid(word, arity):
+    print('The word is valid.')
+else:
+    print('The word is invalid.')
