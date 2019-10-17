@@ -2,11 +2,12 @@ import sys
 import re
 
 roman_symbol = ['I', 'V', 'X', 'L', 'C', 'D', 'M']
+pattern_roman = re.compile(r'^M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$')  # 罗马数字的匹配模式
 
 
 # 判断是否为合法的可转换为罗马数字的正整数
 def is_valid_positiveInt(string):
-    if string.isnumeric() and (not string.startswith('0')):
+    if string.isdigit() and (not string.startswith('0')):
         if int(string) <= 3999:
             return True
         else:
@@ -16,10 +17,14 @@ def is_valid_positiveInt(string):
 
 # 判断是否为合法的罗马数字
 def is_roman(string):
-    for letter in string:
+    upper_str = string.upper()
+    for letter in upper_str:
         if letter not in roman_symbol:
             return False
-    return True
+    match_roman = pattern_roman.match(upper_str)
+    if match_roman:
+        return True
+    return False
 
 
 # feedback 字符串列表
@@ -37,11 +42,24 @@ while 1:
             match_obj_second = re.search(r'(.*) using (.*)', group1)
             match_obj_third = re.search(r'(.*) minimally', group1)
             if match_obj_second:  # 满足第二种输入条件
+                ####
+                ####
+                ####
+                ####
+                ####
+                ####
                 if (match_obj_second.group(1).isnumeric() or is_roman(match_obj_second.group(1))) \
                         and (match_obj_second.group(2).isnumeric() or is_roman(match_obj_second.group(2))):
                     print(match_obj_second.group(1))
                     print(match_obj_second.group(2))
             elif match_obj_third:  # 满足第三种输入条件
+                ####
+                ####
+                ####
+                ####
+                ####
+                ####
+                ####
                 if match_obj_third.group() != group1:
                     print()
                 print(match_obj_second.group(1))
