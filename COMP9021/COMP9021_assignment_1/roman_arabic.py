@@ -88,9 +88,9 @@ def roman_convert_to_integer(weightMap, converting_number):
 
 
 # feedback 字符串列表
-feedback_str = ["I don't get what you want, sorry mate!", \
-                "Hey, ask me something that's not impossible to do!", \
-                "Sure! It is"]
+feedback_str = [" I don't get what you want, sorry mate!", \
+                " Hey, ask me something that's not impossible to do!", \
+                " Sure! It is"]
 
 user_input_initial = input('How can I help you?')
 user_input_initial.strip()  # 消除前后空格
