@@ -36,7 +36,7 @@ def encode(list_of_integers):
     else:  # 列表中只有一个元素
         for letter in bin_list[0]:
             return_code = return_code + (letter * 2)
-        print('after encode, the corresponding bin number is :', return_code)
+        # print('after encode, the corresponding bin number is :', return_code)
         return int(return_code, 2)
 
 

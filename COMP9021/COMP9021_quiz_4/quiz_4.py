@@ -36,7 +36,7 @@ def is_valid(word_input, num_para):
     if num_para == 0:  # 参数个数为 0 的情况（不允许有括号存在）
         return check_symbol(word_input)
 
-    else:  # 参数个数＞ 0 的情况（不允许有括号存在）
+    else:  # 参数个数＞ 0 的情况（允许有括号存在）
         word_input = word_input.replace(',', ' ')  # 去掉所有的空格
         word_input = word_input.replace('(', ' ( ')  # 替换括号为括号左右加空格
         word_input = word_input.replace(')', ' ) ')
