@@ -69,14 +69,14 @@ class Maze(object):
                 # 初步检测：矩阵是否符合格式
                 if self.check_matrix_valid():
                     if self.check_boundary_valid():
-                        print('this matrix is valid.')
+                        pass
                     else:
                         raise MazeError('Input does not represent a maze.')
                 else:
                     raise MazeError('Incorrect input.')
-        except MazeError as me:
-            print(me.message)
-            sys.exit()
+        # except MazeError as me:
+        #     print(me.message)
+        #     sys.exit()
         except FileNotFoundError:
             print('File does not exist!')
             sys.exit()
@@ -382,10 +382,10 @@ class Maze(object):
         # print('finally converting to grid_view : ')
         # for line in grid_view:
         #     print(*line)
+
         # 填充内部不可访问点
         for i, j in self.inaccessible_inner_points:
             grid_view[i][j] = 1
-
         # print('after updating the grid_view : ')
         # for line in grid_view:
         #     print(*line)
@@ -399,11 +399,11 @@ class Maze(object):
                         self.mark_dead_points(i + x_dir, j + y_dir, grid_view)
 
         # 复制死路版本的地图
+        # 找死路的个数 并 标记所有的死胡同
         dead_path_version_grid = cp.deepcopy(grid_view)
         # print('after marking the dead path : ')
         # for line in dead_path_version_grid:
         #     print(*line)
-
         cul_de_sacs_points = []
         for i in range(len(dead_path_version_grid)):
             for j in range(len(dead_path_version_grid[0])):
@@ -412,7 +412,6 @@ class Maze(object):
         self.accessible_cul_de_sacs = cul_de_sacs_points
         # print('accessible_cul_de_sacs points set is : ')
         # print(self.accessible_cul_de_sacs)
-
         nb_index = 3
         for i in range(len(dead_path_version_grid)):
             for j in range(len(dead_path_version_grid[0])):
@@ -421,12 +420,14 @@ class Maze(object):
                     nb_index += 1
         self.nb_accessible_cul_de_sacs = nb_index - 3
 
+        # 所有的候选路径
         all_paths = []
         for x, y in self.gates:
             temp_path = []
             self.mark_possible_path(x, y, grid_view, temp_path)
             if temp_path:
                 all_paths.append(temp_path)
+        # print()
         # print('after marking all possible path : ')
         # for line in grid_view:
         #     print(*line)
@@ -434,31 +435,23 @@ class Maze(object):
         #     print(path)
 
         # 寻找路径中包含门的数量是多少
+        final_paths = []
         for path in all_paths:
-            count = 0
+            count_gates = 0
             for point in path:
                 if point in self.gates:
-                    count += 1
-            if count == 2:  # 是候选路径
-                for x, y in path:
-                    deep_count = 0
-                    for x_dir, y_dir in self.direction:
-                        if (0 <= x + x_dir < len(grid_view)) and (0 <= y + y_dir < len(grid_view[0])):
-                            if grid_view[x + x_dir][y + y_dir] == 3:
-                                deep_count += 1
-                    if deep_count == 3:
-                        all_paths.remove(path)
-                        break
-            else:
-                all_paths.remove(path)
-
-        # print('the remaining valid path is : ')
-        # for path in all_paths:
+                    count_gates += 1
+            if count_gates == 2 and self.have_no_interaction(path, grid_view):  # 是候选路径
+                final_paths.append(path)
+        # print('the final path is : ')
+        # for path in final_paths:
         #     print(path)
-        final_grid = cp.deepcopy(grid_view)
-        self.nb_entry_exit_path = len(all_paths)
 
-        for path in all_paths:
+
+        final_grid = cp.deepcopy(grid_view)
+        self.nb_entry_exit_path = len(final_paths)
+
+        for path in final_paths:
             for i, j in path:
                 final_grid[i][j] = 4
 
@@ -524,6 +517,18 @@ class Maze(object):
                 temp_seg.append((e[1], e[0]))
             self.entry_eixt_path.append(temp_seg)
 
+    # 判断是否存在交叉点
+    def have_no_interaction(self, path, grid_view):
+        for (x, y) in path:
+            deep_count = 0
+            for x_dir, y_dir in self.direction:
+                if (0 <= x + x_dir < len(grid_view)) and (0 <= y + y_dir < len(grid_view[0])) and grid_view[x + x_dir][
+                    y + y_dir] == 3:
+                    deep_count += 1
+            if deep_count == 3:
+                return False
+        return True
+
     # 标记可能路径
     def mark_possible_path(self, x, y, grid_view, temp_path):
         if (0 <= x < len(grid_view)) and (0 <= y < len(grid_view[0])) and grid_view[x][y] == 0:
@@ -579,11 +584,11 @@ class Maze(object):
         elif self.nb_walls == 1:
             print(f'The maze has walls that are all connected.')
         elif self.nb_walls > 1:
-            print(f'The maze has {self.nb_walls} sets of walls that are all connected')
+            print(f'The maze has {self.nb_walls} sets of walls that are all connected.')
 
-        if self.nb_inaccessible_inner_points:
-            print(f'The maze has no gate.')
-        elif self.nb_inaccessible_inner_points:
+        if self.nb_inaccessible_inner_points == 0:
+            print(f'The maze has no inaccessible inner point.')
+        elif self.nb_inaccessible_inner_points == 1:
             print(f'The maze has a unique inaccessible inner point.')
         elif self.nb_inaccessible_inner_points > 1:
             print(f'The maze has {self.nb_inaccessible_inner_points} inaccessible inner points.')
@@ -664,16 +669,63 @@ class Maze(object):
         # display
         self.attribute_display()
 
-        self.display()
-
     # 生成迷宫图
     def display(self):
+        # code 九宫格字典
+        code_dic_1 = {'0': ((1, 0, 1),
+                            (0, 0, 0),
+                            (1, 0, 1)),
+
+                      '1': ((1, 1, 1),
+                            (0, 0, 0),
+                            (1, 0, 1)),
+
+                      '2': ((1, 0, 1),
+                            (1, 0, 0),
+                            (1, 0, 1)),
+
+                      '3': ((1, 1, 1),
+                            (1, 0, 0),
+                            (1, 0, 1))}
+
+        code_dic_2 = {'0': ((0, 0, 0),
+                            (0, 0, 0),
+                            (0, 0, 0)),
+
+                      '1': ((1, 1, 1),
+                            (0, 0, 0),
+                            (0, 0, 0)),
+
+                      '2': ((1, 0, 0),
+                            (1, 0, 0),
+                            (1, 0, 0)),
+
+                      '3': ((1, 1, 1),
+                            (1, 0, 0),
+                            (1, 0, 0))}
+
+        # 输出
+        # gates
+        self.get_gates(code_dic_1)
+
+        # walls
+        self.nb_walls = self.get_walls(code_dic_2)
+
+        # pillars
+        self.get_pillars()
+
+        # accessible areas and inaccessible inner points
+        self.get_accessible_areas_and_inaccessible_inner_point(code_dic_1)
+
+        # accessible cul-de-sacs and entry-exit path
+        self.get_accessible_cul_de_sacs_and_entry_exit_paths(code_dic_1)
+
         walls = self.walls
         pillars = self.pillars
         accessible_cul_de_sacs = self.accessible_cul_de_sacs
         entry_eixt_path = self.entry_eixt_path
 
-        file_name = self.file_name.split('.')[0] + '_test.tex'
+        file_name = self.file_name.split('.')[0] + '.tex'
         if os.path.exists(file_name):
             os.remove(file_name)
         with open(file_name, 'w') as derived_file:
@@ -691,20 +743,25 @@ class Maze(object):
             derived_file.write('\\begin{tikzpicture}[x=0.5cm, y=-0.5cm, ultra thick, blue]\n')
 
             # draw walls
+            derived_file.write('% Walls\n')
             for wall in walls:
-                derived_file.write(f'    \\draw {wall[0]} -- {wall[1]};')
+                derived_file.write(f'    \\draw ({wall[0][0]},{wall[0][1]}) -- ({wall[1][0]},{wall[1][1]});\n')
 
             # draw pillars
-            for wall in walls:
-                derived_file.write(f'    \\fill[green] {wall[0]} circle(0.2);')
+            derived_file.write('% Pillars\n')
+            for pillar in pillars:
+                derived_file.write(f'    \\fill[green] ({pillar[0]},{pillar[1]}) circle(0.2);\n')
 
             # accessible cul-de-sacs
-            for wall in walls:
-                derived_file.write(f'    \\draw {wall[0]} -- {wall[1]};')
+            derived_file.write('% Inner points in accessible cul-de-sacs\n')
+            for dead in accessible_cul_de_sacs:
+                derived_file.write(f'    \\node at ({dead[0]},{dead[1]}) ' + '{}' + ';\n')
 
             # Entry-exit paths
-            for wall in walls:
-                derived_file.write(f'    \\draw {wall[0]} -- {wall[1]};')
+            derived_file.write('% Entry-exit paths without intersections\n')
+            for entry in entry_eixt_path:
+                derived_file.write(
+                    f'    \\draw[dashed, yellow] ({entry[0][0]},{entry[0][1]}) -- ({entry[1][0]},{entry[1][1]});\n')
 
             derived_file.write('\\end{tikzpicture}\n')
             derived_file.write('\\end{center}\n')
