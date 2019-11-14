@@ -1,8 +1,230 @@
-# Initial state: q0
+# COMP9021 19T3 - Rachid Hamadi
+# Assignment 2 *** Due Sunday Week 10
 
-q0 1 q1 0 R
-q1 1 q1 1 R
-q1 0 q2 1 L
-q2 1 q2 1 L
-q2 0 q3 0 R
 
+import copy as cp
+import numpy as np
+import sys
+
+
+class MazeError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
+class Maze(object):
+    # 类属性
+    x_dim = 2  # x_dim 应当满足 2 <= x_dim <= 31 --- columns nb
+    y_dim = 2  # y_dim 应当满足 2 <= y_dim <= 41 --- rows nb
+    direction = [(-1, 0), (0, -1), (1, 0), (0, 1)]  # 方向：上左下右
+    maze_matrix = []
+    gates = set([])
+    nb_gates = 0
+
+
+
+    # 构造方法
+    def __init__(self, filename):
+        try:
+            with open(filename, 'r') as maze_data:
+                lines = maze_data.readlines()
+                for line in lines:
+                    if not line.isspace():  # 判断是否是空格
+                        each_row = ''.join(line.split())
+                        self.maze_matrix.append(list(each_row))
+                self.x_dim = len(self.maze_matrix[0])
+                self.y_dim = len(self.maze_matrix)
+                # 初步检测：矩阵是否符合格式
+                if self.check_matrix_valid():
+                    if self.check_boundary_valid():
+                        print('this matrix is valid.')
+                    else:
+                        raise MazeError('Input does not represent a maze.')
+                else:
+                    raise MazeError('Incorrect input.')
+        except MazeError as me:
+            print(me.message)
+            sys.exit()
+        except FileNotFoundError:
+            print('File does not exist!')
+            sys.exit()
+
+    # 判断 maze_n.txt 文件是否符合正确的矩阵格式
+    def check_matrix_valid(self):
+        # print('row number of this maze is : ', len(self.maze_matrix))
+        column_num = []  # 记录每一行的列数， 便于后面判断所有列数是否相等
+        # check_1:
+        if 2 <= len(self.maze_matrix) <= 41:
+            for line in self.maze_matrix:
+                if 2 <= len(line) <= 31:
+                    continue
+                else:
+                    return False
+        else:
+            return False
+
+        # check_2:
+        for line in self.maze_matrix:
+            column_num.append(len(line))
+        # print('every column num is : ', column_num)
+        for num in column_num:
+            if num != column_num[0]:
+                return False
+
+        # check_3:
+        for line in self.maze_matrix:
+            for digit in line:
+                if digit not in ['0', '1', '2', '3']:
+                    return False
+
+        return True
+
+    # 判断边界是否符合正确的格式
+    def check_boundary_valid(self):
+        for line in self.maze_matrix:
+            if line[-1] == '1' or line[-1] == '3':
+                return False
+        for digit in self.maze_matrix[len(self.maze_matrix) - 1]:
+            if digit == '2' or digit == '3':
+                return False
+        return True
+
+    # 创建九宫格地图
+    def create_grid_view(self, code_dic):
+        # 记录九宫格中的每行数据
+        rows = []
+        for line in self.maze_matrix:
+            temp_row = code_dic[line[0]]
+            for j in range(1, len(line)):
+                temp_row = np.hstack((temp_row, code_dic[line[j]]))  # 水平堆叠九宫格
+            rows.append(temp_row)
+
+        # 对应的九宫格地图
+        grid_view = rows[0]
+        for i in range(1, len(rows)):
+            grid_view = np.vstack((grid_view, rows[i]))  # 垂直堆叠九宫格
+
+        # 最终版本9宫格，去掉了边缘两列两行
+        final_grid_view = grid_view[0:self.y_dim * 3 - 2, 0:self.x_dim * 3 - 2]
+
+        print('after converting to grid_view : ')
+        for line in final_grid_view:
+            print(*line)
+
+        return final_grid_view
+
+    # 找门的个数
+    def get_nb_gates(self, code_dic):
+        grid_view = self.create_grid_view(code_dic)
+        # 地图细化平滑处理
+        for i in range(self.y_dim * 3 - 2):
+            for j in range(self.x_dim * 3 - 2):
+                if grid_view[i][j] == 0:
+                    count_neighber_1 = 0
+                    for i_dir, j_dir in self.direction:
+                        if 0 <= i + i_dir < self.y_dim * 3 - 2 \
+                                and 0 <= j + j_dir < self.x_dim * 3 - 2 \
+                                and grid_view[i + i_dir][j + j_dir] == 1:
+                            count_neighber_1 += 1
+                    if count_neighber_1 == 3:
+                        grid_view[i][j] = 1
+        print('finally converting to grid_view : ')
+        for line in grid_view:
+            print(*line)
+        array = np.array(grid_view)
+        up_side = array[0, 0:len(grid_view[0])]
+        right_side = grid_view[0:len(grid_view), len(grid_view[0]) - 1]
+        down_side = grid_view[len(grid_view) - 1, 0:len(grid_view[0])]
+        left_side = grid_view[0:len(grid_view), 0]
+        # print()
+        # print(f'up_side is : {up_side}')
+        # print(f'right_side is : {right_side}')
+        # print(f'down_side is : {down_side}')
+        # print(f'left_side is : {left_side}')
+        nb_gates = list(up_side).count(0) + list(right_side).count(0) \
+                   + list(down_side).count(0) + list(left_side).count(0)
+        return nb_gates
+
+    def get_nb_walls(self, code_dic):
+        grid_view = self.create_grid_view(code_dic)
+        # 地图细化平滑处理
+        for i in range(self.y_dim * 3 - 2):
+            for j in range(self.x_dim * 3 - 2):
+                if 0 <= i + 1 < len(grid_view) and 0 <= j + 1 < len(grid_view[0]):
+                    if grid_view[i][j] == 1 and grid_view[i - 1][j + 1] == 1 \
+                            and grid_view[i][j + 1] == 0 and grid_view[i + 1][j] == 0:
+                        grid_view[i][j + 1] = 1
+                elif i + 1 == len(grid_view) and 0 <= j + 1 < len(grid_view[0]):
+                    if grid_view[i][j] == 1 and grid_view[i - 1][j + 1] == 1 \
+                            and grid_view[i][j + 1] == 0:
+                        grid_view[i][j + 1] = 1
+        # print('finally converting to grid_view : ')
+        # for line in grid_view:
+        #     print(*line)
+        color_index = 2
+        cp_grid = cp.deepcopy(grid_view)
+        for i in range(len(cp_grid)):
+            for j in range(len(cp_grid[i])):
+                if cp_grid[i][j] == 1:  # 即还没有被染色
+                    self.find_walls(i, j, color_index, cp_grid)
+                    color_index += 1  # 染色完毕之后，换颜色
+
+        nb_walls = color_index - 2
+        return nb_walls
+
+    def find_walls(self, i, j, color_index, cp_grid):
+        i_dim = len(cp_grid)
+        j_dim = len(cp_grid[0])
+        if 0 <= i < i_dim and 0 <= j < j_dim and cp_grid[i][j] == 1:
+            cp_grid[i][j] = color_index
+            for i_dir, j_dir in self.direction:
+                self.find_walls(i + i_dir, j + j_dir, color_index, cp_grid)
+        else:
+            return
+
+    # 分析迷宫图
+    def analyse(self):
+        self.display()  # 输出测试
+        # code 九宫格字典
+        code_dic_1 = {'0': ((1, 0, 1),
+                            (0, 0, 0),
+                            (1, 0, 1)),
+
+                      '1': ((1, 1, 1),
+                            (0, 0, 0),
+                            (1, 0, 1)),
+
+                      '2': ((1, 0, 1),
+                            (1, 0, 0),
+                            (1, 0, 1)),
+
+                      '3': ((1, 1, 1),
+                            (1, 0, 0),
+                            (1, 0, 1))}
+
+        code_dic_2 = {'0': ((0, 0, 0),
+                            (0, 0, 0),
+                            (0, 0, 0)),
+
+                      '1': ((1, 1, 1),
+                            (0, 0, 0),
+                            (0, 0, 0)),
+
+                      '2': ((1, 0, 0),
+                            (1, 0, 0),
+                            (1, 0, 0)),
+
+                      '3': ((1, 1, 1),
+                            (1, 0, 0),
+                            (1, 0, 0))}
+
+        nb_of_gates = self.get_nb_gates(code_dic_1)
+        # nb_of_walls = self.get_nb_walls(code_dic_2)
+        print(f'the number of gates is : {nb_of_gates}')
+        # print(f'the number of walls is : {nb_of_walls}')
+
+    # 生成迷宫图
+    def display(self):
+        for line in self.maze_matrix:
+            print(line)
+        print()
