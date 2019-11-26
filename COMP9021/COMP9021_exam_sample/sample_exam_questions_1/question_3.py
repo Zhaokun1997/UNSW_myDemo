@@ -11,14 +11,23 @@ from collections import defaultdict
 def f(n):
     factors = defaultdict(int)
     # Insert your code here
+    # temp = n
+    # for i in range(2, n + 1):
+    #     if temp == 1:
+    #         break
+    #     while temp % i == 0:
+    #         factors[i] += 1
+    #         temp = temp // i
+    # print(factors)
+
     temp = n
     for i in range(2, n + 1):
-        if temp == 1:
-            break
         while temp % i == 0:
+            if temp == 1:
+                break
             factors[i] += 1
             temp = temp // i
-    print(factors)
+
     print(f'The decomposition of {n} into prime factors reads:')
     print('  ', n, '=', end=' ')
     print(' x '.join(factors[x] == 1 and str(x) or f'{x}^{factors[x]}' for x in sorted(factors)))

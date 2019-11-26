@@ -1,42 +1,58 @@
-# tape = [0, 0, 1, 1, 1, 0]
-# E = (str(item) for item in tape)  # 迭代器
-#
-#
-# def draw_horizontal_line():
-#     global tape
-#     print('-' * (2 * len(tape) + 1))
-#
-#
-# def display_tape():
-#     global E
-#     draw_horizontal_line()
-#     print('|' + '|'.join(E) + '|')
-#     draw_horizontal_line()
-#     return None
-#
-# display_tape()
-
-# myFile = open('addition.txt', 'r')
-# lines = myFile.readlines()
-# for line in lines:
-#     print(line, end='')
-#
-# for line in myFile:
-#     print(line, end='')
+from math import sqrt
+from itertools import compress
 
 
-# # 左闭右开的区间
-# str1 = 'abcdefg\n'
-# def testIndex():
-#     print(str1[0:])
-#     print(str1[:len(str1)])
-#     print(str1[:len(str1)-1])
-#     print(str1[0:-1])
-#     print(str1[:-1])
-# testIndex()
+def get_all_divosors(n):
+    if n == 1:
+        return [1]
+    result = set([])
+    for i in range(2, int(sqrt(n)) + 1):
+        if n % i == 0:
+            result.add(i)
+            result.add(n // i)
+    return result
 
 
+print(get_all_divosors(113))
 
-dic = {1: 'A', 2: 'B', 4: 'D'}
-del dic[1]
-print(dic)
+
+def is_prime(n):
+    if n == 1:
+        return False
+    if n == 2 or n == 3:
+        return True
+    if n % 2 == 0:
+        return False
+    return all(n % d for d in range(3, round(n ** 0.5) + 1, 2))
+
+
+print(is_prime(4))
+print(is_prime(5))
+print(is_prime(7))
+
+
+def get_all_primes_3(n):
+    if n < 2:
+        return []
+    if n == 2:
+        return [2]
+    sieve = bytearray([True]) * (n // 2)
+    for i in range(3, int(sqrt(n)) + 1, 2):
+        if sieve[i // 2]:
+            sieve[i * i // 2::i] = bytearray((n - i * i - 1) // (2 * i) + 1)
+    return [2, *compress(range(3, n, 2), sieve[1:])]
+
+
+print(get_all_primes_3(197))
+
+
+def test(n):
+    if n < 2:
+        return []
+    if n == 2:
+        return [2]
+    sieve = bytearray([True]) * (n // 2)
+    for i in range(3, int(sqrt(n)) + 1, 2):
+        if sieve[i // 2]:
+            sieve[i * i // 2::i] = bytearray((n - i * i - 1) // (2 * i) + 1)
+    return [2, *compress(range(3, n, 2), sieve[1:])]
